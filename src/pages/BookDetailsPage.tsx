@@ -3,6 +3,8 @@ import { useParams } from 'react-router-dom';
 import { NDKEvent, NDKKind, NDKSubscription } from '@nostr-dev-kit/ndk';
 import ndk from '../lib/ndk';
 import ReviewCard from '../components/book/ReviewCard';
+import BookReviewForm from '../components/book/BookReviewForm';
+import type { Book } from './SearchPage';
 
 interface BookInfo {
   title: string;
@@ -20,6 +22,7 @@ export default function BookDetailsPage() {
   const [nostrBookInfo, setNostrBookInfo] = useState<BookInfo | null>(null);
   const [openLibraryBookInfo, setOpenLibraryBookInfo] = useState<BookInfo | null>(null);
   const [metadataSource, setMetadataSource] = useState<MetadataSource>('nostr');
+  const [isReviewFormOpen, setIsReviewFormOpen] = useState(false);
 
   // Fetch book metadata from Nostr
   useEffect(() => {
@@ -107,6 +110,14 @@ export default function BookDetailsPage() {
   if (!bookId) return <div>No book ID provided.</div>;
   if (!bookInfo) return <p>Loading book details...</p>;
 
+  // Reconstruct a 'Book' object for the form
+  const bookForForm: Book = {
+    key: `/works/${bookId}`,
+    title: bookInfo.title,
+    author_name: [bookInfo.author],
+    cover_i: bookInfo.cover ? parseInt(bookInfo.cover.split('/id/')[1].split('-')[0]) : undefined,
+  };
+
   const renderStars = (rating: number) => (
     <span style={{ fontSize: '2rem', color: 'gold' }}>{'★'.repeat(Math.round(rating)).padEnd(5, '☆')}</span>
   );
@@ -125,6 +136,11 @@ export default function BookDetailsPage() {
         <div>
           <h1>{bookInfo.title}</h1>
           <h2 style={{ fontWeight: 'normal', color: '#555' }}>by {bookInfo.author}</h2>
+          
+          <button onClick={() => setIsReviewFormOpen(true)} style={{ marginTop: '1rem' }}>
+            Add to Shelf / Review
+          </button>
+
           {openLibraryRating && (
             <div style={{ marginTop: '1rem' }}>
               {renderStars(openLibraryRating)}
@@ -145,6 +161,10 @@ export default function BookDetailsPage() {
         reviews.map(event => <ReviewCard key={event.id} event={event} />)
       ) : (
         <p>No reviews found for this book yet.</p>
+      )}
+
+      {isReviewFormOpen && (
+        <BookReviewForm book={bookForForm} onClose={() => setIsReviewFormOpen(false)} />
       )}
     </div>
   );

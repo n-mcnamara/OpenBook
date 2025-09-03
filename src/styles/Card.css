@@ -1,3 +1,87 @@
+/* Card Styles */
+.card {
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px var(--shadow-color);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Book Card Specific */
+.book-card {
+  text-align: center;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.book-card-link {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.book-card-cover {
+  width: 100%;
+  height: 240px;
+  object-fit: cover;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.book-card-no-cover {
+  width: 100%;
+  height: 240px;
+  background: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ccc;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.book-card-info {
+  padding: 1rem;
+  flex-grow: 1;
+}
+
+.book-card-info h3 {
+  font-size: 1rem;
+  margin: 0 0 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.book-card-info p {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0;
+}
+
+.book-card button {
+  margin: 0 1rem 1rem;
+}
+
+.nostr-stamp {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  font-size: 1.5rem;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
 /* Review & Feed Card Specifics */
 .review-card-header, .feed-event-header {
   display: flex;
@@ -57,48 +141,11 @@
   padding: 5px 8px;
   font-size: 0.8rem;
 }
-: flex;
-  align-items: center;
-  justify-content: center;
-  color: #ccc;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
-}
 
-.book-card-info {
-  padding: 1rem;
-  flex-grow: 1;
-}
-
-.book-card-info h3 {
-  font-size: 1rem;
-  margin: 0 0 5px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.book-card-info p {
-  font-size: 0.9rem;
-  color: #666;
-  margin: 0;
-}
-
-.book-card button {
-  margin: 0 1rem 1rem;
-}
-
-.nostr-stamp {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  font-size: 1.5rem;
-  background: rgba(255, 255, 255, 0.8);
-  border-radius: 50%;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
+/* Card Grid Layout */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
 }
