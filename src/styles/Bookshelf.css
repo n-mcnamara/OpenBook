@@ -1,0 +1,38 @@
+/* Bookshelf Container */
+.bookshelf {
+  background-color: #f0e6d6; /* Light parchment color for the backboard */
+  padding: 2rem 3rem; /* Space inside the bookshelf */
+  border: 15px solid #6b4f3a; /* Dark wood color for the frame */
+  border-radius: 5px;
+  box-shadow: 5px 5px 15px rgba(0,0,0,0.3);
+  margin-bottom: 3rem;
+}
+
+/* Shelf Title */
+.shelf-title {
+  font-family: 'Georgia', serif;
+  color: #4a382a;
+  border-bottom: 2px solid #c8b8a3;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Row where books sit */
+.shelf-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 25px; /* Spacing between books */
+  align-items: flex-end;
+  min-height: 280px; /* Ensure shelf has height even when empty */
+  padding-bottom: 10px; /* Space above the shelf line */
+  border-bottom: 5px solid #8a6d55; /* The actual shelf the books sit on */
+  box-shadow: 0 2px 3px rgba(0,0,0,0.2);
+}
+
+.shelf-empty-message {
+  color: #8a6d55;
+  font-style: italic;
+  align-self: center;
+  width: 100%;
+  text-align: center;
+}

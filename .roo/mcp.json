@@ -1,0 +1,17 @@
+{
+    "mcpServers": {
+    "ndk-git": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "deno",
+        "run",
+        "-A",
+        "jsr:@nostrbook/mcp",
+        "--context-git",
+        "https://github.com/nostr-dev-kit/ndk.git"
+      ],
+      "disabled": false
+    }
+  }
+}
