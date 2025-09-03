@@ -80,8 +80,12 @@ export default function SearchPage() {
     setResults([]);
     setNostrBookIds(new Set());
 
+    // Use the proxy in development, and the real URL in production
+    const baseUrl = import.meta.env.DEV ? '/api' : 'https://openlibrary.org';
+    const searchUrl = `${baseUrl}/search.json?q=${encodeURIComponent(query)}`;
+
     try {
-      const response = await fetch(`/api/search.json?q=${encodeURIComponent(query)}`);
+      const response = await fetch(searchUrl);
       if (!response.ok) throw new Error(`Network response was not ok (${response.status})`);
       
       const data = await response.json();
