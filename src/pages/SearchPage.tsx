@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { NDKKind } from '@nostr-dev-kit/ndk';
+import ndk from '../lib/ndk';
 import BookCard from '../components/book/BookCard';
 import '../styles/Card.css';
 
