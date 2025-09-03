@@ -1,69 +1,19 @@
-# React + TypeScript + Vite
+# OpenBook - A Decentralized Goodreads Alternative on Nostr
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+OpenBook is a censorship-resistant and decentralized social platform for book lovers, built on the Nostr protocol. It aims to provide the core functionality of Goodreads without the centralized control of a single corporation.
 
-Currently, two official plugins are available:
+This project was built with React, TypeScript, Vite, and the Nostr Dev Kit (NDK).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features
 
-## Expanding the ESLint configuration
+The current MVP includes the following features:
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- **User Authentication:** Log in securely using any NIP-07 browser extension.
+- **Book Search:** Discover books by title or author using the Open Library API.
+- **Bookshelves:** Organize your reading life by shelving books as "Want to Read," "Currently Reading," or "Read."
+- **Reviews & Ratings:** Add a 1-5 star rating and a written review for any book you've read.
+- **User Profiles:** View any user's bookshelves and Nostr profile (name, bio, avatar).
+- **Home Feed:** See the recent book-related activity from the people you follow.
+- **Follow/Unfollow:** Manage your social graph directly within the app.
+- **Edit Content:** Update or change your shelf status, rating, or review for any book.
+- **Global Discover Feed:** Find new books and interesting users on a global feed of all recent activity.
