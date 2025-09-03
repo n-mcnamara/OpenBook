@@ -5,9 +5,10 @@ import { Link } from 'react-router-dom';
 
 interface BookCardProps {
   book: Book;
+  isNostr: boolean; // Prop to indicate if the book metadata is on Nostr
 }
 
-export default function BookCard({ book }: BookCardProps) {
+export default function BookCard({ book, isNostr }: BookCardProps) {
   const [isReviewFormOpen, setIsReviewFormOpen] = useState(false);
   const bookId = book.key.replace('/works/', '');
 
@@ -17,7 +18,12 @@ export default function BookCard({ book }: BookCardProps) {
 
   return (
     <>
-      <div style={{ border: '1px solid #ccc', padding: '10px', borderRadius: '5px', width: '180px', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+      <div style={{ position: 'relative', border: '1px solid #ccc', padding: '10px', borderRadius: '5px', width: '180px', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        {isNostr && (
+          <span title="This book's metadata is on Nostr" style={{ position: 'absolute', top: '15px', left: '15px', fontSize: '1.5rem' }}>
+            💜
+          </span>
+        )}
         <Link to={`/book/${bookId}`} style={{ textDecoration: 'none', color: 'inherit' }}>
           {coverUrl ? (
             <img src={coverUrl} alt={`Cover for ${book.title}`} style={{ width: '100%', height: '240px', objectFit: 'cover' }} />

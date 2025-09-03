@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { NDKEvent } from '@nostr-dev-kit/ndk';
+import { NDKEvent, NDKKind } from '@nostr-dev-kit/ndk';
 import ndk from '../../lib/ndk';
 import { useUserStore } from '../../lib/store';
 import type { Book } from '../../pages/SearchPage';
 
 interface BookReviewFormProps {
   book: Book;
-  eventToEdit?: NDKEvent; // Make existing event optional for editing
+  eventToEdit?: NDKEvent;
   onClose: () => void;
 }
 
@@ -27,7 +27,45 @@ export default function BookReviewForm({ book, eventToEdit, onClose }: BookRevie
     }
   }, [eventToEdit]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const ensureBookMetadataIsOnNostr = async (bookId: string) => {
+    const existingMetadata = await ndk.fetchEvent({
+      kinds: [30452 as NDKKind],
+      '#d': [bookId],
+    });
+
+    if (existingMetadata) {
+      console.log(`DEBUG: Metadata for ${bookId} already exists.`);
+      return;
+    }
+
+    console.log(`DEBUG: No metadata for ${bookId} found. Publishing...`);
+    const metadataEvent = new NDKEvent(ndk);
+    metadataEvent.kind = 30452 as NDKKind;
+    
+    const title = book.title.toLowerCase().substring(0, 256);
+    const author = book.author_name?.[0]?.toLowerCase().substring(0, 256) || '';
+    metadataEvent.tags.push(['d', bookId]);
+    metadataEvent.tags.push(['title', title]);
+    if (author) metadataEvent.tags.push(['author', author]);
+    
+    const content = {
+      title: book.title,
+      author: book.author_name?.[0] || '',
+      cover: book.cover_i ? `https://covers.openlibrary.org/b/id/${book.cover_i}-L.jpg` : '',
+      published_year: book.first_publish_year?.toString() || '',
+    };
+    metadataEvent.content = JSON.stringify(content);
+
+    try {
+      console.log("DEBUG: Publishing kind:30452 event:", metadataEvent.rawEvent());
+      await metadataEvent.publish();
+      console.log("DEBUG: Successfully published metadata.");
+    } catch (e) {
+      console.error("DEBUG: Failed to publish metadata event:", e);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
       alert('Please login to add a book.');
@@ -35,40 +73,36 @@ export default function BookReviewForm({ book, eventToEdit, onClose }: BookRevie
     }
 
     setPublishState('publishing');
-
-    const event = new NDKEvent(ndk);
-    event.kind = 30451;
-    event.content = review;
-
     const bookId = book.key.replace('/works/', '');
-    event.tags.push(['d', bookId]);
-    event.tags.push(['status', status]);
 
-    if (status === 'read' && rating > 0) {
-      event.tags.push(['rating', rating.toString()]);
+    if (!eventToEdit) {
+      await ensureBookMetadataIsOnNostr(bookId);
     }
 
-    // If we are editing, we carry over the existing book metadata tags
+    const shelfEvent = new NDKEvent(ndk);
+    shelfEvent.kind = 30451;
+    shelfEvent.content = review;
+    shelfEvent.tags.push(['d', bookId]);
+    shelfEvent.tags.push(['status', status]);
+
+    if (status === 'read' && rating > 0) {
+      shelfEvent.tags.push(['rating', rating.toString()]);
+    }
+
     if (eventToEdit) {
         eventToEdit.tags.forEach(tag => {
             if (['title', 'author', 'cover', 'published_year'].includes(tag[0])) {
-                event.tags.push(tag);
+                shelfEvent.tags.push(tag);
             }
         });
-    } else { // Otherwise, we add them from the book object
-        event.tags.push(['title', book.title]);
-        if (book.author_name?.[0]) {
-            event.tags.push(['author', book.author_name[0]]);
-        }
-        if (book.cover_i) {
-            event.tags.push(['cover', `https://covers.openlibrary.org/b/id/${book.cover_i}-L.jpg`]);
-        }
-        if (book.first_publish_year) {
-            event.tags.push(['published_year', book.first_publish_year.toString()]);
-        }
+    } else {
+        shelfEvent.tags.push(['title', book.title]);
+        if (book.author_name?.[0]) shelfEvent.tags.push(['author', book.author_name[0]]);
+        if (book.cover_i) shelfEvent.tags.push(['cover', `https://covers.openlibrary.org/b/id/${book.cover_i}-L.jpg`]);
+        if (book.first_publish_year) shelfEvent.tags.push(['published_year', book.first_publish_year.toString()]);
     }
 
-    event.publish();
+    shelfEvent.publish();
     setPublishState('success');
 
     setTimeout(() => {
@@ -80,6 +114,7 @@ export default function BookReviewForm({ book, eventToEdit, onClose }: BookRevie
     <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'white', padding: '2rem', border: '1px solid #ccc', zIndex: 100 }}>
       <h2>{book.title}</h2>
       <form onSubmit={handleSubmit}>
+        {/* Form content remains the same */}
         <div>
           <label>Shelf:</label>
           <select value={status} onChange={(e) => setStatus(e.target.value as ShelfStatus)}>
@@ -88,7 +123,6 @@ export default function BookReviewForm({ book, eventToEdit, onClose }: BookRevie
             <option value="read">Read</option>
           </select>
         </div>
-
         {status === 'read' && (
           <div style={{ marginTop: '1rem' }}>
             <label>Rating:</label>
@@ -101,7 +135,6 @@ export default function BookReviewForm({ book, eventToEdit, onClose }: BookRevie
             </div>
           </div>
         )}
-
         <div style={{ marginTop: '1rem' }}>
           <label>Review:</label>
           <textarea
@@ -112,7 +145,6 @@ export default function BookReviewForm({ book, eventToEdit, onClose }: BookRevie
             placeholder="Your thoughts on the book..."
           />
         </div>
-
         <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
           <button type="button" onClick={onClose} disabled={publishState !== 'idle'}>Cancel</button>
           <button type="submit" disabled={publishState !== 'idle'}>
