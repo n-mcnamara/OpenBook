@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import type { Book } from '../../pages/SearchPage';
 import BookReviewForm from './BookReviewForm';
 import { Link } from 'react-router-dom';
+import '../../styles/Card.css';
 
 interface BookCardProps {
   book: Book;
-  isNostr: boolean; // Prop to indicate if the book metadata is on Nostr
+  isNostr: boolean;
 }
 
 export default function BookCard({ book, isNostr }: BookCardProps) {
@@ -18,24 +19,24 @@ export default function BookCard({ book, isNostr }: BookCardProps) {
 
   return (
     <>
-      <div style={{ position: 'relative', border: '1px solid #ccc', padding: '10px', borderRadius: '5px', width: '180px', textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+      <div className="card book-card">
         {isNostr && (
-          <span title="This book's metadata is on Nostr" style={{ position: 'absolute', top: '15px', left: '15px', fontSize: '1.5rem' }}>
+          <span title="This book's metadata is on Nostr" className="nostr-stamp">
             💜
           </span>
         )}
-        <Link to={`/book/${bookId}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+        <Link to={`/book/${bookId}`} className="book-card-link">
           {coverUrl ? (
-            <img src={coverUrl} alt={`Cover for ${book.title}`} style={{ width: '100%', height: '240px', objectFit: 'cover' }} />
+            <img src={coverUrl} alt={`Cover for ${book.title}`} className="book-card-cover" />
           ) : (
-            <div style={{ width: '100%', height: '240px', background: '#e0e0e0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#aaa' }}>
-              No Cover
-            </div>
+            <div className="book-card-no-cover">No Cover</div>
           )}
-          <h3 style={{ fontSize: '1rem', margin: '10px 0 5px' }}>{book.title}</h3>
-          <p style={{ fontSize: '0.9rem', color: '#666' }}>{book.author_name?.[0]}</p>
+          <div className="book-card-info">
+            <h3>{book.title}</h3>
+            <p>{book.author_name?.[0]}</p>
+          </div>
         </Link>
-        <button onClick={() => setIsReviewFormOpen(true)} style={{ marginTop: '10px' }}>
+        <button onClick={() => setIsReviewFormOpen(true)}>
           Add to Shelf
         </button>
       </div>

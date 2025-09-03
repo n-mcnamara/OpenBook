@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { NDKEvent, NDKKind, NDKSubscription } from '@nostr-dev-kit/ndk';
 import ndk from '../lib/ndk';
 import FeedEvent from '../components/feed/FeedEvent';

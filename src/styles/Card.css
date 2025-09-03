@@ -1,0 +1,104 @@
+/* Review & Feed Card Specifics */
+.review-card-header, .feed-event-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 1rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.star-rating {
+  font-size: 1rem;
+  color: gold;
+  margin-top: 4px;
+}
+
+.review-card-content, .review-content {
+  font-style: italic;
+}
+
+.feed-event-body {
+  display: flex;
+  gap: 1rem;
+}
+
+.feed-event-cover {
+  width: 100px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.feed-event-info h3 {
+  margin: 0 0 0.5rem;
+}
+
+.status-text {
+  color: #666;
+}
+
+/* Shelved Book Specifics */
+.shelved-book {
+  position: relative;
+}
+
+.edit-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
+  padding: 5px 8px;
+  font-size: 0.8rem;
+}
+: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ccc;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.book-card-info {
+  padding: 1rem;
+  flex-grow: 1;
+}
+
+.book-card-info h3 {
+  font-size: 1rem;
+  margin: 0 0 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.book-card-info p {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0;
+}
+
+.book-card button {
+  margin: 0 1rem 1rem;
+}
+
+.nostr-stamp {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  font-size: 1.5rem;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}

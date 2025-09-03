@@ -1,7 +1,7 @@
-import React from 'react';
 import { NDKEvent } from '@nostr-dev-kit/ndk';
 import { useUserProfile } from '../../hooks/useUserProfile';
 import { Link } from 'react-router-dom';
+import '../../styles/Card.css';
 
 interface FeedEventProps {
   event: NDKEvent;
@@ -27,30 +27,28 @@ export default function FeedEvent({ event }: FeedEventProps) {
   }[status || ''] || 'updated';
 
   return (
-    <div style={{ border: '1px solid #eee', padding: '1rem', marginBottom: '1rem', borderRadius: '8px' }}>
-      <Link to={`/p/${event.pubkey}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
-          <img
-            src={profile?.image || `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${event.pubkey}`}
-            alt={profile?.displayName || 'author avatar'}
-            style={{ width: '40px', height: '40px', borderRadius: '50%', marginRight: '10px' }}
-          />
-          <div>
-            <strong>{profile?.displayName || profile?.name || event.pubkey.substring(0, 12)}</strong>
-            <span style={{ color: '#666' }}> {statusText}</span>
-          </div>
+    <div className="card feed-event-card">
+      <Link to={`/p/${event.pubkey}`} className="feed-event-header">
+        <img
+          src={profile?.image || `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${event.pubkey}`}
+          alt={profile?.displayName || 'author avatar'}
+          className="avatar"
+        />
+        <div>
+          <strong>{profile?.displayName || profile?.name || event.pubkey.substring(0, 12)}</strong>
+          <span className="status-text"> {statusText}</span>
         </div>
       </Link>
 
-      <div style={{ display: 'flex', gap: '1rem' }}>
+      <div className="feed-event-body">
         {bookId && coverUrl && (
           <Link to={`/book/${bookId}`}>
-            <img src={coverUrl} alt={`Cover for ${title}`} style={{ width: '100px', height: '150px', objectFit: 'cover', borderRadius: '4px' }} />
+            <img src={coverUrl} alt={`Cover for ${title}`} className="feed-event-cover" />
           </Link>
         )}
-        <div>
+        <div className="feed-event-info">
           {bookId ? (
-            <Link to={`/book/${bookId}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+            <Link to={`/book/${bookId}`}>
               <h3>{title}</h3>
             </Link>
           ) : (
@@ -58,12 +56,12 @@ export default function FeedEvent({ event }: FeedEventProps) {
           )}
 
           {rating && (
-            <div style={{ fontSize: '1.2rem', color: 'gold' }}>
+            <div className="star-rating">
               {'★'.repeat(parseInt(rating, 10)).padEnd(5, '☆')}
             </div>
           )}
           {event.content && (
-            <p style={{ marginTop: '0.5rem', fontStyle: 'italic' }}>"{event.content}"</p>
+            <p className="review-content">"{event.content}"</p>
           )}
         </div>
       </div>

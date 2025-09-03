@@ -1,5 +1,4 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import Login from '../auth/Login';
 import { useUserStore } from '../../lib/store';
 
@@ -7,16 +6,18 @@ export default function Navbar() {
   const { user } = useUserStore();
 
   return (
-    <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', borderBottom: '1px solid #ccc' }}>
-      <div style={{ display: 'flex', gap: '1rem' }}>
-        <Link to="/">Home</Link>
-        <Link to="/search">Search</Link>
-        <Link to="/discover">Discover</Link>
+    <nav className="main-nav">
+      <div className="nav-links">
+        <NavLink to="/">Home</NavLink>
+        <NavLink to="/discover">Discover</NavLink>
+        <NavLink to="/search">Search</NavLink>
         {user && (
-          <Link to={`/p/${user.pubkey}`}>My Shelves</Link>
+          <NavLink to={`/p/${user.pubkey}`}>My Shelves</NavLink>
         )}
       </div>
-      <Login />
+      <div className="nav-login">
+        <Login />
+      </div>
     </nav>
   );
 }

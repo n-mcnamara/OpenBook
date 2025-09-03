@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { NDKEvent, NDKKind, NDKSubscription } from '@nostr-dev-kit/ndk';
 import { useUserProfile } from '../hooks/useUserProfile';
@@ -44,7 +44,9 @@ export default function ProfilePage() {
         const existingIndex = prevEvents.findIndex(e => e.tagValue('d') === event.tagValue('d'));
         if (existingIndex > -1) {
           const newEvents = [...prevEvents];
-          if (event.created_at > newEvents[existingIndex].created_at) newEvents[existingIndex] = event;
+          if ((event.created_at || 0) > (newEvents[existingIndex].created_at || 0)) {
+            newEvents[existingIndex] = event;
+          }
           return newEvents;
         }
         return [...prevEvents, event];
@@ -62,7 +64,7 @@ export default function ProfilePage() {
 
     try {
       await newEvent.publish();
-      setContactListEvent(newEvent); // Update state with the new, successfully published event
+      setContactListEvent(newEvent);
     } catch (error) {
       console.error("Failed to publish contact list update:", error);
       alert("Failed to update contact list. Please ensure your NIP-07 extension is enabled and connected.");

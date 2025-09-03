@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { NDKEvent, NDKKind, NDKSubscription } from '@nostr-dev-kit/ndk';
 import ndk from '../lib/ndk';
@@ -15,7 +15,6 @@ type MetadataSource = 'nostr' | 'openlibrary';
 export default function BookDetailsPage() {
   const { bookId } = useParams();
   const [reviews, setReviews] = useState<NDKEvent[]>([]);
-  const [eose, setEose] = useState(false);
   const [openLibraryRating, setOpenLibraryRating] = useState<number | null>(null);
   
   const [nostrBookInfo, setNostrBookInfo] = useState<BookInfo | null>(null);
@@ -61,15 +60,13 @@ export default function BookDetailsPage() {
   useEffect(() => {
     if (!bookId) return;
     setReviews([]);
-    setEose(false);
     const subscription: NDKSubscription = ndk.subscribe([{ kinds: [30451 as NDKKind], '#d': [bookId] }]);
     subscription.on('event', (event: NDKEvent) => {
       setReviews(prev => {
         if (prev.some(e => e.id === event.id)) return prev;
-        return [...prev, event].sort((a, b) => b.created_at! - a.created_at!);
+        return [...prev, event].sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
       });
     });
-    subscription.on('eose', () => setEose(true));
     return () => subscription.stop();
   }, [bookId]);
 

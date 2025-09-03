@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
-import { NDKEvent, NDKKind } from '@nostr-dev-kit/ndk';
-import ndk from '../lib/ndk';
+import { useState } from 'react';
 import BookCard from '../components/book/BookCard';
+import '../styles/Card.css';
 
 export interface Book {
   key: string;
@@ -67,7 +66,7 @@ export default function SearchPage() {
     
     setResults(newResults);
     setNostrBookIds(foundIds);
-    setError(null); // Clear the "searching nostr" message
+    setError(null);
   };
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -90,7 +89,6 @@ export default function SearchPage() {
 
     } catch (err) {
       console.error(err);
-      // This is the new fallback logic
       await searchNostrByTitle(query);
       setIsLoading(false);
     }
@@ -98,23 +96,21 @@ export default function SearchPage() {
 
   return (
     <div>
-      <h1>Search Books</h1>
-      <form onSubmit={handleSearch}>
+      <form onSubmit={handleSearch} className="search-form">
         <input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search for books by title or author..."
-          style={{ width: '300px', marginRight: '10px' }}
         />
         <button type="submit" disabled={isLoading}>
           {isLoading ? 'Searching...' : 'Search'}
         </button>
       </form>
 
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {error && <p className="error-message">{error}</p>}
 
-      <div style={{ marginTop: '20px', display: 'flex', flexWrap: 'wrap', gap: '20px' }}>
+      <div className="card-grid">
         {results.map((book) => {
           const bookId = book.key.replace('/works/', '');
           return (
