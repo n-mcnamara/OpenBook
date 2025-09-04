@@ -13,8 +13,41 @@ export default function ProfilePage() {
   const [events, setEvents] = useState<NDKEvent[]>([]);
   const [eose, setEose] = useState(false);
   const [contactListEvent, setContactListEvent] = useState<NDKEvent | null>(null);
+  const [followers, setFollowers] = useState<Set<string>>(new Set());
+  const [following, setFollowing] = useState<Set<string>>(new Set());
 
   const profile = useUserProfile(pubkey);
+
+  // Fetch followers and following
+  useEffect(() => {
+    if (!pubkey) return;
+
+    // Fetch who the user is following
+    const followingSub = ndk.subscribe({
+        kinds: [NDKKind.Contacts],
+        authors: [pubkey],
+    });
+
+    followingSub.on('event', (event: NDKEvent) => {
+        const followedPubkeys = event.tags.filter(t => t[0] === 'p').map(t => t[1]);
+        setFollowing(new Set(followedPubkeys));
+    });
+
+    // Fetch who is following the user
+    const followersSub = ndk.subscribe({
+        kinds: [NDKKind.Contacts],
+        '#p': [pubkey],
+    });
+
+    followersSub.on('event', (event: NDKEvent) => {
+        setFollowers(prev => new Set([...prev, event.pubkey]));
+    });
+
+    return () => {
+        followingSub.stop();
+        followersSub.stop();
+    }
+  }, [pubkey]);
 
   // Fetch the logged-in user's contact list
   useEffect(() => {
@@ -38,8 +71,26 @@ export default function ProfilePage() {
     if (!pubkey) return;
     setEvents([]);
     setEose(false);
-    const subscription: NDKSubscription = ndk.subscribe([{ kinds: [30451 as NDKKind], authors: [pubkey] }]);
-    subscription.on('event', (event: NDKEvent) => {
+
+    const isOwnProfile = currentUser?.pubkey === pubkey;
+    const kinds = [30451 as NDKKind];
+    if (isOwnProfile) {
+      kinds.push(30454 as NDKKind);
+    }
+
+    const subscription: NDKSubscription = ndk.subscribe([{ kinds, authors: [pubkey] }]);
+    
+    subscription.on('event', async (event: NDKEvent) => {
+      if (event.kind === 30454) {
+        try {
+          // Decrypt the content for the current user
+          await event.decrypt(currentUser!);
+        } catch (e) {
+          console.error("Failed to decrypt private shelf event:", e);
+          return; // Skip events that can't be decrypted
+        }
+      }
+
       setEvents(prevEvents => {
         const existingIndex = prevEvents.findIndex(e => e.tagValue('d') === event.tagValue('d'));
         if (existingIndex > -1) {
@@ -52,9 +103,10 @@ export default function ProfilePage() {
         return [...prevEvents, event];
       });
     });
+
     subscription.on('eose', () => setEose(true));
     return () => subscription.stop();
-  }, [pubkey]);
+  }, [pubkey, currentUser]);
 
   const updateContactList = async (newTags: string[][]) => {
     const newEvent = new NDKEvent(ndk);
@@ -116,6 +168,10 @@ export default function ProfilePage() {
           <img src={profile?.image || `https://api.dicebear.com/8.x/bottts-neutral/svg?seed=${pubkey}`} alt={profile?.displayName || 'author avatar'} style={{ width: '80px', height: '80px', borderRadius: '50%' }} />
           <div>
             <h1>{profile?.displayName || profile?.name || `${pubkey.substring(0, 12)}...`}</h1>
+            <div style={{ display: 'flex', gap: '1rem' }}>
+                <span>{following.size} Following</span>
+                <span>{followers.size} Followers</span>
+            </div>
             {profile?.about && <p>{profile.about}</p>}
           </div>
         </div>

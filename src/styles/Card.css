@@ -10,6 +10,7 @@
 
 /* Book Card Specific */
 .book-card {
+  position: relative;
   text-align: center;
   padding: 0;
   display: flex;

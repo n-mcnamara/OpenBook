@@ -50,7 +50,7 @@ export default function ShelvedBook({ event, currentUser }: ShelvedBookProps) {
             <div className="book-card-no-cover">No Cover</div>
           )}
           <div className="book-card-info">
-            <h3>{title}</h3>
+            <h3>{title} {event.kind === 30454 && '🔒'}</h3>
             <p>{author}</p>
             {rating && (
               <div className="star-rating">

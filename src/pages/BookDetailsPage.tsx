@@ -10,6 +10,8 @@ interface BookInfo {
   title: string;
   author: string;
   cover?: string;
+  cover_i?: number;
+  first_publish_year?: number;
 }
 
 type MetadataSource = 'nostr' | 'openlibrary';
@@ -44,14 +46,25 @@ export default function BookDetailsPage() {
     if (!bookId) return;
     const fetchOpenLibraryMetadata = async () => {
       try {
-        const response = await fetch(`https://openlibrary.org/works/${bookId}.json`);
-        const data = await response.json();
-        const authorResponse = await fetch(`https://openlibrary.org${data.authors[0].author.key}.json`);
+        // Fetch the main work data
+        const workResponse = await fetch(`https://openlibrary.org/works/${bookId}.json`);
+        const workData = await workResponse.json();
+
+        // Fetch the author data
+        const authorResponse = await fetch(`https://openlibrary.org${workData.authors[0].author.key}.json`);
         const authorData = await authorResponse.json();
+        
+        // Fetch search data to get the publish year reliably
+        const searchResponse = await fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(workData.title)}&author=${encodeURIComponent(authorData.name)}`);
+        const searchData = await searchResponse.json();
+        const bookDoc = searchData.docs.find((doc: any) => doc.key === `/works/${bookId}`);
+
         const info = {
-          title: data.title,
+          title: workData.title,
           author: authorData.name,
-          cover: data.covers?.[0] ? `https://covers.openlibrary.org/b/id/${data.covers[0]}-L.jpg` : undefined,
+          cover: workData.covers?.[0] ? `https://covers.openlibrary.org/b/id/${workData.covers[0]}-L.jpg` : undefined,
+          cover_i: workData.covers?.[0],
+          first_publish_year: bookDoc?.first_publish_year,
         };
         setOpenLibraryBookInfo(info);
       } catch (error) { console.error("Failed to fetch from Open Library", error); }
@@ -110,13 +123,13 @@ export default function BookDetailsPage() {
   if (!bookId) return <div>No book ID provided.</div>;
   if (!bookInfo) return <p>Loading book details...</p>;
 
-  // Reconstruct a 'Book' object for the form
-  const bookForForm: Book = {
+  // Reconstruct a 'Book' object for the form, always using the Open Library data for consistency
+  const bookForForm: Book | undefined = openLibraryBookInfo ? {
     key: `/works/${bookId}`,
-    title: bookInfo.title,
-    author_name: [bookInfo.author],
-    cover_i: bookInfo.cover ? parseInt(bookInfo.cover.split('/id/')[1].split('-')[0]) : undefined,
-  };
+    title: openLibraryBookInfo.title,
+    author_name: [openLibraryBookInfo.author],
+    cover_i: openLibraryBookInfo.cover_i,
+  } : undefined;
 
   const renderStars = (rating: number) => (
     <span style={{ fontSize: '2rem', color: 'gold' }}>{'★'.repeat(Math.round(rating)).padEnd(5, '☆')}</span>
@@ -137,9 +150,13 @@ export default function BookDetailsPage() {
           <h1>{bookInfo.title}</h1>
           <h2 style={{ fontWeight: 'normal', color: '#555' }}>by {bookInfo.author}</h2>
           
-          <button onClick={() => setIsReviewFormOpen(true)} style={{ marginTop: '1rem' }}>
-            Add to Shelf / Review
-          </button>
+          <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+            {bookForForm && (
+              <button onClick={() => setIsReviewFormOpen(true)}>
+                Add to Shelf / Review
+              </button>
+            )}
+          </div>
 
           {openLibraryRating && (
             <div style={{ marginTop: '1rem' }}>
@@ -163,7 +180,7 @@ export default function BookDetailsPage() {
         <p>No reviews found for this book yet.</p>
       )}
 
-      {isReviewFormOpen && (
+      {isReviewFormOpen && bookForForm && (
         <BookReviewForm book={bookForForm} onClose={() => setIsReviewFormOpen(false)} />
       )}
     </div>

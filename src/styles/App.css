@@ -64,12 +64,42 @@ hr {
 }
 
 /* App Header */
-.app-header {
-  background-color: var(--card-background);
-  border-bottom: 1px solid var(--border-color);
-  padding: 2rem 1.5rem;
-  text-align: center;
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
 }
+
+/* Modal Styles */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: var(--background-color);
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  width: 90%;
+  max-width: 500px;
+}
+
+.modal-actions {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
 
 .header-content {
   max-width: 960px;

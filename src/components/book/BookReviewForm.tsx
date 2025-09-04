@@ -17,6 +17,7 @@ export default function BookReviewForm({ book, eventToEdit, onClose }: BookRevie
   const [status, setStatus] = useState<ShelfStatus>('want-to-read');
   const [rating, setRating] = useState<number>(0);
   const [review, setReview] = useState('');
+  const [isPrivate, setIsPrivate] = useState(false);
   const [publishState, setPublishState] = useState<'idle' | 'publishing' | 'success'>('idle');
 
   useEffect(() => {
@@ -80,29 +81,50 @@ export default function BookReviewForm({ book, eventToEdit, onClose }: BookRevie
     }
 
     const shelfEvent = new NDKEvent(ndk);
-    shelfEvent.kind = 30451;
-    shelfEvent.content = review;
     shelfEvent.tags.push(['d', bookId]);
     shelfEvent.tags.push(['status', status]);
 
     if (status === 'read' && rating > 0) {
       shelfEvent.tags.push(['rating', rating.toString()]);
     }
+    
+    // Add book metadata tags for context
+    const addMetadataTags = (event: NDKEvent) => {
+        if (eventToEdit) {
+            eventToEdit.tags.forEach(tag => {
+                if (['title', 'author', 'cover', 'published_year'].includes(tag[0])) {
+                    event.tags.push(tag);
+                }
+            });
+        } else {
+            event.tags.push(['title', book.title]);
+            if (book.author_name?.[0]) event.tags.push(['author', book.author_name[0]]);
+            if (book.cover_i) event.tags.push(['cover', `https://covers.openlibrary.org/b/id/${book.cover_i}-L.jpg`]);
+            if (book.first_publish_year) event.tags.push(['published_year', book.first_publish_year.toString()]);
+        }
+    };
 
-    if (eventToEdit) {
-        eventToEdit.tags.forEach(tag => {
-            if (['title', 'author', 'cover', 'published_year'].includes(tag[0])) {
-                shelfEvent.tags.push(tag);
-            }
-        });
+    if (isPrivate) {
+      shelfEvent.kind = 30454 as NDKKind;
+      
+      // Content for a private event is the review text itself.
+      // We will encrypt this content.
+      shelfEvent.content = review;
+      
+      // We still add metadata tags to the event so the user can identify it
+      // before decrypting, but the review content is encrypted.
+      addMetadataTags(shelfEvent);
+
+      // Encrypt the content for the user themselves
+      await shelfEvent.encrypt(user);
+
     } else {
-        shelfEvent.tags.push(['title', book.title]);
-        if (book.author_name?.[0]) shelfEvent.tags.push(['author', book.author_name[0]]);
-        if (book.cover_i) shelfEvent.tags.push(['cover', `https://covers.openlibrary.org/b/id/${book.cover_i}-L.jpg`]);
-        if (book.first_publish_year) shelfEvent.tags.push(['published_year', book.first_publish_year.toString()]);
+      shelfEvent.kind = 30451 as NDKKind;
+      shelfEvent.content = review;
+      addMetadataTags(shelfEvent);
     }
 
-    shelfEvent.publish();
+    await shelfEvent.publish();
     setPublishState('success');
 
     setTimeout(() => {
@@ -144,6 +166,16 @@ export default function BookReviewForm({ book, eventToEdit, onClose }: BookRevie
             style={{ width: '100%' }}
             placeholder="Your thoughts on the book..."
           />
+        </div>
+        <div style={{ marginTop: '1rem' }}>
+          <label>
+            <input
+              type="checkbox"
+              checked={isPrivate}
+              onChange={(e) => setIsPrivate(e.target.checked)}
+            />
+            Keep this private
+          </label>
         </div>
         <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
           <button type="button" onClick={onClose} disabled={publishState !== 'idle'}>Cancel</button>
