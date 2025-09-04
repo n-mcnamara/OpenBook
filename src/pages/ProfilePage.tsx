@@ -128,7 +128,7 @@ export default function ProfilePage() {
       });
     });
 
-    subscription.on('eose', () => setEose(true));
+    subscription.on('eose', () => {});
     return () => subscription.stop();
   }, [pubkey, currentUser, hasAccess]);
 
