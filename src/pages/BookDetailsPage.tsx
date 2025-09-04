@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
-import { NDKEvent, NDKKind, NDKSubscription } from '@nostr-dev-kit/ndk';
+import { NDKEvent, NDKKind } from '@nostr-dev-kit/ndk';
 import ndk from '../lib/ndk';
 import ReviewCard from '../components/book/ReviewCard';
 import BookReviewForm from '../components/book/BookReviewForm';

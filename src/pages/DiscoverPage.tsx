@@ -109,6 +109,7 @@ export default function DiscoverPage() {
                   author_name: [bookOfTheWeek.author],
                   cover_i: parseInt(bookOfTheWeek.cover.split('/id/')[1].split('-')[0])
                 }}
+                isNostr={true}
               />
               <p style={{ textAlign: 'center', fontWeight: 'bold' }}>
                 ❤️ {bookOfTheWeek.likes} likes this week

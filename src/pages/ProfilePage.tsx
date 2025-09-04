@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
-import { NDKEvent, NDKKind, NDKSubscription, NDKUser } from '@nostr-dev-kit/ndk';
+import { NDKEvent, NDKKind, NDKSubscription } from '@nostr-dev-kit/ndk';
 import { useUserProfile } from '../hooks/useUserProfile';
 import ndk from '../lib/ndk';
 import { useUserStore } from '../lib/store';
@@ -14,7 +14,6 @@ export default function ProfilePage() {
   const { pubkey } = useParams();
   const { user: currentUser } = useUserStore();
   const [events, setEvents] = useState<NDKEvent[]>([]);
-  const [eose, setEose] = useState(false);
   const [contactListEvent, setContactListEvent] = useState<NDKEvent | null>(null);
   const [followers, setFollowers] = useState<Set<string>>(new Set());
   const [following, setFollowing] = useState<Set<string>>(new Set());
