@@ -80,7 +80,6 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!pubkey) return;
     setEvents([]);
-    setEose(false);
 
     const isOwnProfile = currentUser?.pubkey === pubkey;
     const kinds = [30451 as NDKKind];
