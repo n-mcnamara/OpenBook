@@ -1,34 +1,24 @@
-# OpenBook - A Decentralized Goodreads Alternative on Nostr
+# OpenBook `<| O |>`
 
-OpenBook is a censorship-resistant and decentralized social platform for book lovers, built on the Nostr protocol. It aims to provide the core functionality of Goodreads without the centralized control of a single corporation.
+**A cozy, retro, and decentralized bookshelf built on Nostr.**
 
-This project was built with React, TypeScript, Vite, and the Nostr Dev Kit (NDK).
+OpenBook is a censorship-resistant alternative to Goodreads where you control your data. Log in with your Nostr identity and start sharing your reading journey.
 
-## Features
+![OpenBook Screenshot](https://user-images.githubusercontent.com/395622/230791299-03358575-358a-4283-8744-910515f5615f.png)
 
-- **User Authentication:** Log in securely using any NIP-07 browser extension.
-- **Decentralized Book Discovery:** Search for books via the Open Library API, with results enriched to show which books have metadata stored on Nostr. The search gracefully falls back to a Nostr-only search if the API is unavailable.
-- **Community-Sourced Metadata:** The app uses a custom Nostr event to create a decentralized, community-maintained database of book metadata, reducing reliance on centralized APIs.
-- **Bookshelves:** Organize your reading life by shelving books as "Want to Read," "Currently Reading," or "Read."
-- **Reviews & Ratings:** Add a 1-5 star rating and a written review for any book you've read.
-- **User Profiles:** View any user's bookshelves and Nostr profile (name, bio, avatar).
-- **Home Feed:** See the recent book-related activity from the people you follow.
-- **Follow/Unfollow:** Manage your social graph directly within the app.
-- **Edit Content:** Update or change your shelf status, rating, or review for any book.
-- **Global Discover Feed:** Find new books and interesting users on a global feed of all recent activity.
+## Unique Features
 
-## Nostr Protocol
+- **Private, Encrypted Bookshelves:** Your reading list is your business. Keep your shelves private with strong, client-side encryption.
+- **Share with Friends:** Grant access to your private shelves to specific friends by securely sharing your shelf's key via an encrypted message.
+- **Resilient Metadata:** The app can pull book data from the Open Library API, but it also uses a community-driven, Nostr-based metadata system (`kind:30452`). You can switch between sources at any time.
+- **Open Discussions:** Every book has an open discussion thread (`kind: 1`) in addition to structured reviews, allowing for free-form conversation.
+- **Retro Terminal Aesthetic:** A unique, cozy, dark-mode UI that feels like the early internet.
 
-This client uses two custom event kinds for its core functionality:
+## Core Nostr Events
 
-### `kind:30451` - Shelf & Review Event
-This is a **replaceable event per book** that represents a user's personal interaction with a book. It contains their subjective data.
-- **Identifier:** The `d` tag is the book's unique ID (from Open Library).
-- **Content:** The user's written review.
-- **Tags:** Contains the user's shelf `status` (e.g., "read") and `rating` (e.g., "5").
-
-### `kind:30452` - Book Metadata Event
-This is a **replaceable event per book** that represents the book's objective, canonical data. It is designed to be a community-maintained, decentralized encyclopedia entry for a book.
-- **Identifier:** The `d` tag is the book's unique ID.
-- **Searchable Tags:** Includes normalized `title` and `author` tags to allow for direct discovery on Nostr.
-- **Content:** A JSON object containing the book's full title, author, cover image URL, and other metadata.
+- **`kind:30451`**: A user's public review/shelf status for a book.
+- **`kind:30454`**: A user's *private*, encrypted review/shelf status for a book.
+- **`kind:30452`**: Community-sourced, objective metadata for a book.
+- **`kind:1`**: A comment in a book's open discussion thread.
+- **`kind:7`**: A like/dislike reaction to a review or a book's metadata.
+- **`kind:44`**: An encrypted message used to grant a friend access to your private shelf.
