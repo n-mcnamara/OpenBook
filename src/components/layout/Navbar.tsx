@@ -8,8 +8,8 @@ export default function Navbar() {
   return (
     <nav className="main-nav">
       <div className="nav-links">
-        <NavLink to="/">Home</NavLink>
         <NavLink to="/discover">Discover</NavLink>
+        <NavLink to="/">Friends Feed</NavLink>
         <NavLink to="/search">Search</NavLink>
         {user && (
           <NavLink to={`/p/${user.pubkey}`}>My Shelves</NavLink>

@@ -64,6 +64,7 @@ export default function ShelvedBook({ event, currentUser }: ShelvedBookProps) {
         <BookReviewForm
           book={bookForForm}
           eventToEdit={event}
+          isPublicEdit={event.kind === 30451}
           onClose={() => setIsEditing(false)}
         />
       )}

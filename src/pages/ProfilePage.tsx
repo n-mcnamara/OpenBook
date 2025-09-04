@@ -1,10 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
-import { NDKEvent, NDKKind, NDKSubscription } from '@nostr-dev-kit/ndk';
+import { NDKEvent, NDKKind, NDKSubscription, NDKUser } from '@nostr-dev-kit/ndk';
 import { useUserProfile } from '../hooks/useUserProfile';
 import ndk from '../lib/ndk';
 import { useUserStore } from '../lib/store';
 import ShelvedBook from '../components/book/ShelvedBook';
+import { getSelfShelfKey, decryptShelfItem } from '../lib/shelfCrypto';
+import { getFriendShelfKey } from '../lib/ShelfKeyManager';
+import eventBus from '../lib/EventBus';
 import '../styles/Bookshelf.css';
 
 export default function ProfilePage() {
@@ -15,30 +18,43 @@ export default function ProfilePage() {
   const [contactListEvent, setContactListEvent] = useState<NDKEvent | null>(null);
   const [followers, setFollowers] = useState<Set<string>>(new Set());
   const [following, setFollowing] = useState<Set<string>>(new Set());
+  const [hasAccess, setHasAccess] = useState(false);
 
   const profile = useUserProfile(pubkey);
+
+  // Check if we have access to the user's shelf and listen for key events
+  useEffect(() => {
+    if (!pubkey || !currentUser) return;
+
+    const checkAccess = async () => {
+      const key = await getFriendShelfKey(pubkey);
+      setHasAccess(!!key);
+    };
+    checkAccess();
+
+    const handleKeyReceived = (keyOwnerPubkey: string) => {
+      if (keyOwnerPubkey === pubkey) {
+        setHasAccess(true);
+      }
+    };
+
+    eventBus.on('key-received', handleKeyReceived);
+    return () => {
+      eventBus.off('key-received', handleKeyReceived);
+    };
+  }, [pubkey, currentUser]);
 
   // Fetch followers and following
   useEffect(() => {
     if (!pubkey) return;
 
-    // Fetch who the user is following
-    const followingSub = ndk.subscribe({
-        kinds: [NDKKind.Contacts],
-        authors: [pubkey],
-    });
-
+    const followingSub = ndk.subscribe({ kinds: [NDKKind.Contacts], authors: [pubkey] });
     followingSub.on('event', (event: NDKEvent) => {
         const followedPubkeys = event.tags.filter(t => t[0] === 'p').map(t => t[1]);
         setFollowing(new Set(followedPubkeys));
     });
 
-    // Fetch who is following the user
-    const followersSub = ndk.subscribe({
-        kinds: [NDKKind.Contacts],
-        '#p': [pubkey],
-    });
-
+    const followersSub = ndk.subscribe({ kinds: [NDKKind.Contacts], '#p': [pubkey] });
     followersSub.on('event', (event: NDKEvent) => {
         setFollowers(prev => new Set([...prev, event.pubkey]));
     });
@@ -52,13 +68,8 @@ export default function ProfilePage() {
   // Fetch the logged-in user's contact list
   useEffect(() => {
     if (!currentUser) return;
-
-    ndk.fetchEvent({
-      kinds: [NDKKind.Contacts],
-      authors: [currentUser.pubkey],
-    }).then(event => {
-      setContactListEvent(event);
-    });
+    ndk.fetchEvent({ kinds: [NDKKind.Contacts], authors: [currentUser.pubkey] })
+      .then(event => setContactListEvent(event));
   }, [currentUser]);
 
   const isFollowing = useMemo(() => {
@@ -74,7 +85,7 @@ export default function ProfilePage() {
 
     const isOwnProfile = currentUser?.pubkey === pubkey;
     const kinds = [30451 as NDKKind];
-    if (isOwnProfile) {
+    if (currentUser && (isOwnProfile || hasAccess)) {
       kinds.push(30454 as NDKKind);
     }
 
@@ -82,13 +93,27 @@ export default function ProfilePage() {
     
     subscription.on('event', async (event: NDKEvent) => {
       if (event.kind === 30454) {
+        let decrypted = false;
         try {
-          // Decrypt the content for the current user
-          await event.decrypt(currentUser!);
+          let key: CryptoKey | null = null;
+          if (isOwnProfile) {
+            key = await getSelfShelfKey();
+          } else {
+            key = await getFriendShelfKey(pubkey);
+          }
+
+          if (key) {
+            const decryptedContent = await decryptShelfItem(event.content, key);
+            const data = JSON.parse(decryptedContent);
+            event.content = data.review;
+            if (data.rating) event.tags.push(['rating', data.rating.toString()]);
+            if (data.cover) event.tags.push(['cover', data.cover]);
+            decrypted = true;
+          }
         } catch (e) {
-          console.error("Failed to decrypt private shelf event:", e);
-          return; // Skip events that can't be decrypted
+          console.error(`Failed to decrypt or parse shelf item (event ${event.id}):`, e);
         }
+        if (!decrypted) return;
       }
 
       setEvents(prevEvents => {
@@ -106,21 +131,15 @@ export default function ProfilePage() {
 
     subscription.on('eose', () => setEose(true));
     return () => subscription.stop();
-  }, [pubkey, currentUser]);
+  }, [pubkey, currentUser, hasAccess]);
 
   const updateContactList = async (newTags: string[][]) => {
     const newEvent = new NDKEvent(ndk);
     newEvent.kind = NDKKind.Contacts;
     newEvent.tags = newTags;
     newEvent.content = contactListEvent?.content || '';
-
-    try {
-      await newEvent.publish();
-      setContactListEvent(newEvent);
-    } catch (error) {
-      console.error("Failed to publish contact list update:", error);
-      alert("Failed to update contact list. Please ensure your NIP-07 extension is enabled and connected.");
-    }
+    await newEvent.publish();
+    setContactListEvent(newEvent);
   };
 
   const handleFollow = () => {
@@ -135,6 +154,50 @@ export default function ProfilePage() {
     const currentTags = contactListEvent?.tags || [];
     const newTags = currentTags.filter(tag => !(tag[0] === 'p' && tag[1] === pubkey));
     updateContactList(newTags);
+  };
+
+  const handleGrantAccess = async () => {
+    if (!pubkey || !currentUser) {
+      console.error("Grant Access: Missing pubkey or current user.");
+      return;
+    }
+
+    console.log("Grant Access: Starting process...");
+
+    try {
+      const shelfKey = await getSelfShelfKey();
+      console.log("Grant Access: Got self shelf key.");
+      const shelfKeyJwk = await crypto.subtle.exportKey('jwk', shelfKey);
+      const content = JSON.stringify({
+        type: 'shelf-access-grant',
+        shelfKey: shelfKeyJwk,
+      });
+
+      const dmEvent = new NDKEvent(ndk);
+      dmEvent.kind = 44 as NDKKind;
+      dmEvent.content = content;
+      dmEvent.tags.push(['p', pubkey]);
+      dmEvent.tags.push(['t', 'openbook:shelf:grant']);
+
+      console.log("Grant Access: Event created, attempting to encrypt and publish...", dmEvent.rawEvent());
+
+      // @ts-ignore
+      if (!window.nostr || !window.nostr.nip44) {
+        throw new Error("NIP-44 is not available on the window.nostr object.");
+      }
+
+      // Bypass NDK and use the NIP-07 window.nostr object directly
+      // @ts-ignore
+      dmEvent.content = await window.nostr.nip44.encrypt(pubkey, content);
+
+      await dmEvent.publish();
+
+      console.log("Grant Access: Successfully published event.");
+      alert(`Access granted to ${profile?.displayName || 'this user'}.`);
+    } catch (e) {
+      console.error("Failed to grant shelf access:", e);
+      alert("Failed to grant access. Make sure your NIP-07 extension is enabled and working correctly.");
+    }
   };
 
   const shelves = useMemo(() => {
@@ -176,15 +239,21 @@ export default function ProfilePage() {
           </div>
         </div>
         {currentUser && !isOwnProfile && (
-          <button onClick={isFollowing ? handleUnfollow : handleFollow}>
-            {isFollowing ? 'Unfollow' : 'Follow'}
-          </button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <button onClick={isFollowing ? handleUnfollow : handleFollow}>
+              {isFollowing ? 'Unfollow' : 'Follow'}
+            </button>
+            {!hasAccess && (
+              <button onClick={handleGrantAccess}>
+                Grant Shelf Access
+              </button>
+            )}
+          </div>
         )}
       </div>
       <hr style={{ margin: '1rem 0 2rem' }}/>
-      {!eose && events.length === 0 && <p>Loading shelves from the network...</p>}
-      {eose && events.length === 0 && <p>This user has no books on their shelves.</p>}
-      {(eose || events.length > 0) && (
+      {events.length === 0 && <p>No books found on this user's shelves.</p>}
+      {(events.length > 0) && (
         <>
           <Shelf title="Currently Reading" books={shelves.reading} />
           <Shelf title="Want to Read" books={shelves.wantToRead} />

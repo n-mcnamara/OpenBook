@@ -2,17 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { NDKEvent, NDKKind } from '@nostr-dev-kit/ndk';
 import ndk from '../../lib/ndk';
 import { useUserStore } from '../../lib/store';
+import { getSelfShelfKey, encryptShelfItem } from '../../lib/shelfCrypto';
 import type { Book } from '../../pages/SearchPage';
 
 interface BookReviewFormProps {
   book: Book;
   eventToEdit?: NDKEvent;
+  isPublicEdit?: boolean;
   onClose: () => void;
 }
 
 type ShelfStatus = 'want-to-read' | 'reading' | 'read';
 
-export default function BookReviewForm({ book, eventToEdit, onClose }: BookReviewFormProps) {
+export default function BookReviewForm({ book, eventToEdit, isPublicEdit, onClose }: BookReviewFormProps) {
   const { user } = useUserStore();
   const [status, setStatus] = useState<ShelfStatus>('want-to-read');
   const [rating, setRating] = useState<number>(0);
@@ -107,17 +109,16 @@ export default function BookReviewForm({ book, eventToEdit, onClose }: BookRevie
     if (isPrivate) {
       shelfEvent.kind = 30454 as NDKKind;
       
-      // Content for a private event is the review text itself.
-      // We will encrypt this content.
-      shelfEvent.content = review;
+      // Get the user's personal shelf key
+      const shelfKey = await getSelfShelfKey();
       
-      // We still add metadata tags to the event so the user can identify it
-      // before decrypting, but the review content is encrypted.
+      // Encrypt the review content with the shelf key
+      const coverUrl = book.cover_i ? `https://covers.openlibrary.org/b/id/${book.cover_i}-L.jpg` : '';
+      const contentToEncrypt = JSON.stringify({ review, rating, cover: coverUrl });
+      shelfEvent.content = await encryptShelfItem(contentToEncrypt, shelfKey);
+
+      // Metadata tags are still public to identify the book
       addMetadataTags(shelfEvent);
-
-      // Encrypt the content for the user themselves
-      await shelfEvent.encrypt(user);
-
     } else {
       shelfEvent.kind = 30451 as NDKKind;
       shelfEvent.content = review;
@@ -168,14 +169,20 @@ export default function BookReviewForm({ book, eventToEdit, onClose }: BookRevie
           />
         </div>
         <div style={{ marginTop: '1rem' }}>
-          <label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <input
               type="checkbox"
               checked={isPrivate}
               onChange={(e) => setIsPrivate(e.target.checked)}
+              disabled={isPublicEdit}
             />
             Keep this private
           </label>
+          {isPublicEdit && (
+            <p style={{ fontSize: '0.8rem', color: '#666', margin: '0.5rem 0 0' }}>
+              Public items cannot be made private. To make this private, please remove it and add it again.
+            </p>
+          )}
         </div>
         <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
           <button type="button" onClick={onClose} disabled={publishState !== 'idle'}>Cancel</button>

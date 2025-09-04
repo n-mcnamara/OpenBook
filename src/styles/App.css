@@ -1,14 +1,16 @@
 /* 
-  Main stylesheet for OpenBook
+  Main stylesheet for OpenBook - Retro Simplistic Theme
 */
 
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital@0;1&display=swap');
+
 :root {
-  --background-color: #fdfdfd;
-  --text-color: #333;
-  --accent-color: #D8A7B1; /* A cozy, warm pink/mauve */
-  --border-color: #eee;
-  --card-background: #fff;
-  --shadow-color: rgba(0, 0, 0, 0.05);
+  --background-color: #fdf6e3; /* Cozy, warm off-white/light brown */
+  --text-color: #584b3a; /* Dark, warm brown for text */
+  --accent-color: #856a4f; /* A deeper, muted brown for accents */
+  --border-color: #dcd3c1; /* Light brown for borders */
+  --card-background: #fffcf2; /* A slightly lighter off-white for cards */
+  --shadow-color: rgba(0, 0, 0, 0.08);
 }
 
 body {
@@ -26,35 +28,44 @@ main {
 }
 
 h1, h2, h3 {
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Lora', serif;
+  font-weight: bold;
 }
 
 a {
   color: var(--accent-color);
-  text-decoration: none;
+  text-decoration: underline;
 }
 
 button {
-  background-color: var(--accent-color);
-  color: white;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 5px;
+  background-color: var(--card-background);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  padding: 8px 13px;
+  border-radius: 0; /* Square corners for retro feel */
   cursor: pointer;
-  font-family: 'Montserrat', sans-serif;
-  transition: background-color 0.2s;
+  font-family: 'Lora', serif;
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-shadow: 2px 2px 0px var(--border-color); /* Simple retro shadow */
 }
 
 button:hover {
-  background-color: #c796a0;
+  background-color: #ffffff;
+}
+
+button:active {
+  box-shadow: 1px 1px 0px var(--border-color);
+  transform: translate(1px, 1px);
 }
 
 input[type="text"], textarea {
   border: 1px solid var(--border-color);
   padding: 10px;
-  border-radius: 5px;
+  border-radius: 0;
   width: 100%;
   box-sizing: border-box;
+  background-color: var(--card-background);
+  color: var(--text-color);
 }
 
 hr {
@@ -77,7 +88,7 @@ hr {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: rgba(40, 30, 20, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -87,8 +98,9 @@ hr {
 .modal-content {
   background-color: var(--background-color);
   padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  border-radius: 0;
+  border: 1px solid var(--border-color);
+  box-shadow: 5px 5px 0px rgba(0, 0, 0, 0.2);
   width: 90%;
   max-width: 500px;
 }
@@ -109,12 +121,12 @@ hr {
 .app-header h1 {
   margin: 0;
   font-size: 2.5rem;
-  color: var(--accent-color);
+  color: var(--text-color);
 }
 
 .app-header .tagline {
   margin: 0.5rem 0 0;
-  color: #999;
+  color: var(--accent-color);
 }
 
 /* Navbar */
@@ -135,19 +147,19 @@ hr {
 }
 
 .nav-links a {
-  color: #666;
-  font-weight: 500;
-  font-family: 'Montserrat', sans-serif;
-  text-decoration: underline;
+  color: var(--accent-color);
+  font-weight: normal;
+  font-family: 'Lora', serif;
+  text-decoration: none;
 }
 
 .nav-links a:hover {
-  color: var(--text-color);
+  text-decoration: underline;
 }
 
 .nav-links a.active {
-  color: var(--accent-color);
-  font-weight: 700;
+  color: var(--text-color);
+  font-weight: bold;
 }
 
 

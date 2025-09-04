@@ -71,7 +71,7 @@ export default function HomePage() {
 
   return (
     <div>
-      <h1>Home Feed</h1>
+      <h1>Friends Feed</h1>
       {feedEvents.length === 0 && (
         <p>
           Your feed is empty. Try following some users or adding books to your own shelves.

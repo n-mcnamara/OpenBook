@@ -2,8 +2,8 @@
 .card {
   background-color: var(--card-background);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
-  box-shadow: 0 2px 8px var(--shadow-color);
+  border-radius: 0; /* Square corners */
+  box-shadow: 3px 3px 0px var(--border-color); /* Simple retro shadow */
   padding: 1.5rem;
   margin-bottom: 1.5rem;
 }
@@ -15,6 +15,9 @@
   padding: 0;
   display: flex;
   flex-direction: column;
+  border: 1px solid var(--border-color);
+  background-color: var(--card-background);
+  box-shadow: 3px 3px 0px var(--border-color);
 }
 
 .book-card-link {
@@ -29,8 +32,8 @@
   width: 100%;
   height: 240px;
   object-fit: cover;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
+  border-radius: 0;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .book-card-no-cover {
@@ -41,8 +44,8 @@
   align-items: center;
   justify-content: center;
   color: #ccc;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
+  border-radius: 0;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .book-card-info {
@@ -60,7 +63,7 @@
 
 .book-card-info p {
   font-size: 0.9rem;
-  color: #666;
+  color: var(--accent-color);
   margin: 0;
 }
 
@@ -96,17 +99,18 @@
 .avatar {
   width: 40px;
   height: 40px;
-  border-radius: 50%;
+  border-radius: 0; /* Square avatars */
+  border: 1px solid var(--border-color);
 }
 
 .star-rating {
   font-size: 1rem;
-  color: gold;
+  color: var(--accent-color);
   margin-top: 4px;
 }
 
 .review-card-content, .review-content {
-  font-style: italic;
+  font-style: normal; /* Removing italics for a simpler look */
 }
 
 .feed-event-body {
@@ -118,7 +122,8 @@
   width: 100px;
   height: 150px;
   object-fit: cover;
-  border-radius: 4px;
+  border-radius: 0;
+  border: 1px solid var(--border-color);
 }
 
 .feed-event-info h3 {
