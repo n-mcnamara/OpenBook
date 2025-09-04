@@ -37,6 +37,9 @@ export default function FeedEvent({ event }: FeedEventProps) {
         <div>
           <strong>{profile?.displayName || profile?.name || event.pubkey.substring(0, 12)}</strong>
           <span className="status-text"> {statusText}</span>
+          <span className="review-date" style={{ color: '#aaa', marginLeft: '0.5rem' }}>
+            {new Date((event.created_at || 0) * 1000).toLocaleDateString()}
+          </span>
         </div>
       </Link>
 

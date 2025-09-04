@@ -1,20 +1,20 @@
 /* 
-  Main stylesheet for OpenBook - Retro Simplistic Theme
+  Main stylesheet for OpenBook - Retro Terminal Theme
 */
 
-@import url('https://fonts.googleapis.com/css2?family=Lora:ital@0;1&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Courier+Prime&display=swap');
 
 :root {
-  --background-color: #fdf6e3; /* Cozy, warm off-white/light brown */
-  --text-color: #584b3a; /* Dark, warm brown for text */
-  --accent-color: #856a4f; /* A deeper, muted brown for accents */
-  --border-color: #dcd3c1; /* Light brown for borders */
-  --card-background: #fffcf2; /* A slightly lighter off-white for cards */
-  --shadow-color: rgba(0, 0, 0, 0.08);
+  --background-color: #2a3a3a; /* Dark, muted teal */
+  --text-color: #fdf6e3; /* Warm, cozy off-white */
+  --accent-color: #e58c42; /* Vintage orange for accents */
+  --border-color: #4a5a5a; /* A slightly lighter teal for borders */
+  --card-background: #3a4a4a; /* A lighter teal for cards */
+  --shadow-color: rgba(0, 0, 0, 0.2);
 }
 
 body {
-  font-family: 'Lora', serif;
+  font-family: 'Courier New', monospace;
   background-color: var(--background-color);
   color: var(--text-color);
   margin: 0;
@@ -28,8 +28,9 @@ main {
 }
 
 h1, h2, h3 {
-  font-family: 'Lora', serif;
+  font-family: 'Courier New', monospace;
   font-weight: bold;
+  color: var(--accent-color);
 }
 
 a {
@@ -42,19 +43,17 @@ button {
   color: var(--text-color);
   border: 1px solid var(--border-color);
   padding: 8px 13px;
-  border-radius: 0; /* Square corners for retro feel */
+  border-radius: 0;
   cursor: pointer;
-  font-family: 'Lora', serif;
-  transition: background-color 0.2s, box-shadow 0.2s;
-  box-shadow: 2px 2px 0px var(--border-color); /* Simple retro shadow */
+  font-family: 'Courier New', monospace;
+  transition: background-color 0.2s;
 }
 
 button:hover {
-  background-color: #ffffff;
+  background-color: #4a5a5a;
 }
 
 button:active {
-  box-shadow: 1px 1px 0px var(--border-color);
   transform: translate(1px, 1px);
 }
 
@@ -64,7 +63,7 @@ input[type="text"], textarea {
   border-radius: 0;
   width: 100%;
   box-sizing: border-box;
-  background-color: var(--card-background);
+  background-color: var(--background-color);
   color: var(--text-color);
 }
 
@@ -88,7 +87,7 @@ hr {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(40, 30, 20, 0.7);
+  background-color: rgba(0, 0, 0, 0.8);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -100,7 +99,7 @@ hr {
   padding: 2rem;
   border-radius: 0;
   border: 1px solid var(--border-color);
-  box-shadow: 5px 5px 0px rgba(0, 0, 0, 0.2);
+  box-shadow: 5px 5px 0px rgba(0, 0, 0, 0.3);
   width: 90%;
   max-width: 500px;
 }
@@ -121,12 +120,14 @@ hr {
 .app-header h1 {
   margin: 0;
   font-size: 2.5rem;
-  color: var(--text-color);
+  color: var(--accent-color);
+  text-align: center;
 }
 
 .app-header .tagline {
   margin: 0.5rem 0 0;
-  color: var(--accent-color);
+  color: var(--text-color);
+  text-align: center;
 }
 
 /* Navbar */
@@ -134,9 +135,9 @@ hr {
   background-color: var(--card-background);
   border-bottom: 1px solid var(--border-color);
   padding: 0 1.5rem;
-  height: 60px;
+  height: 50px; /* Reduced height */
   display: flex;
-  justify-content: space-between;
+  justify-content: center; /* Center the content */
   align-items: center;
 }
 
@@ -146,8 +147,13 @@ hr {
   align-items: center;
 }
 
+.nav-login {
+  position: absolute; /* Position login independently */
+  right: 1.5rem;
+}
+
 .nav-links a {
-  color: var(--accent-color);
+  color: var(--text-color);
   font-weight: normal;
   font-family: 'Lora', serif;
   text-decoration: none;
@@ -155,10 +161,11 @@ hr {
 
 .nav-links a:hover {
   text-decoration: underline;
+  color: var(--accent-color);
 }
 
 .nav-links a.active {
-  color: var(--text-color);
+  color: var(--accent-color);
   font-weight: bold;
 }
 

@@ -212,10 +212,16 @@ export default function ProfilePage() {
   if (!pubkey) return <div>No user pubkey provided.</div>;
 
   const Shelf = ({ title, books }: { title: string; books: NDKEvent[] }) => (
-    <div className="bookshelf">
-      <h2 className="shelf-title">{title} ({books.length})</h2>
-      <div className="shelf-row">
-        {books.length > 0 ? books.map(event => <ShelvedBook key={event.id} event={event} currentUser={currentUser} />) : <p className="shelf-empty-message">[ Shelf is empty ]</p>}
+    <div className="shelf">
+      <div className="shelf-books">
+        {books.length > 0 ? (
+          books.map(event => <ShelvedBook key={event.id} event={event} currentUser={currentUser} />)
+        ) : (
+          <p className="shelf-empty-message">This shelf is empty.</p>
+        )}
+      </div>
+      <div className="shelf-plank">
+        <h2 className="shelf-title">{title} ({books.length})</h2>
       </div>
     </div>
   );
@@ -252,11 +258,11 @@ export default function ProfilePage() {
       <hr style={{ margin: '1rem 0 2rem' }}/>
       {events.length === 0 && <p>No books found on this user's shelves.</p>}
       {(events.length > 0) && (
-        <>
+        <div className="bookshelf-container">
           <Shelf title="Currently Reading" books={shelves.reading} />
           <Shelf title="Want to Read" books={shelves.wantToRead} />
           <Shelf title="Read" books={shelves.read} />
-        </>
+        </div>
       )}
     </div>
   );

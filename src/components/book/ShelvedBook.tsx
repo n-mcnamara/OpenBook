@@ -37,7 +37,7 @@ export default function ShelvedBook({ event, currentUser }: ShelvedBookProps) {
 
   return (
     <>
-      <div className="card book-card shelved-book">
+      <div className="book-card shelved-book" style={{ width: '150px', flexShrink: 0 }}>
         {isOwnBook && (
           <button onClick={() => setIsEditing(true)} className="edit-button">
             Edit
@@ -45,9 +45,9 @@ export default function ShelvedBook({ event, currentUser }: ShelvedBookProps) {
         )}
         <Link to={`/book/${bookId}`} className="book-card-link">
           {coverUrl ? (
-            <img src={coverUrl} alt={`Cover for ${title}`} className="book-card-cover" />
+            <img src={coverUrl} alt={`Cover for ${title}`} className="book-card-cover" style={{ height: '220px' }} />
           ) : (
-            <div className="book-card-no-cover">No Cover</div>
+            <div className="book-card-no-cover" style={{ height: '220px' }}>No Cover</div>
           )}
           <div className="book-card-info">
             <h3>{title} {event.kind === 30454 && '🔒'}</h3>

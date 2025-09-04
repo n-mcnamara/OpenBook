@@ -2,13 +2,27 @@ import { useEffect } from 'react';
 import ndk from './lib/ndk';
 import { AppRoutes } from './router';
 import Navbar from './components/layout/Navbar';
-import IncomingInviteHandler from './components/groups/IncomingInviteHandler';
 import { useKeyManager } from './hooks/useKeyManager';
+import { createAsciiFavicon } from './lib/favicon';
 import './styles/App.css';
+
+const ICON = `_ __
+/ |/ |
+| |  |
+|_|__|_|`;
 
 function App() {
   useEffect(() => {
     ndk.connect().catch((err) => console.error("NDK connection error:", err));
+
+    // Set the favicon
+    const favicon = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+    if (favicon) {
+      favicon.href = createAsciiFavicon(ICON, '#e58c42', '#2a3a3a');
+    }
+    
+    // Set the title
+    document.title = `OpenBook`;
   }, []);
 
   // Initialize the key manager to listen for incoming shelf keys
@@ -26,7 +40,6 @@ function App() {
       <main>
         <AppRoutes />
       </main>
-      <IncomingInviteHandler />
     </div>
   );
 }
