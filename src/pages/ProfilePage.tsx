@@ -5,6 +5,7 @@ import { useUserProfile } from '../hooks/useUserProfile';
 import ndk from '../lib/ndk';
 import { useUserStore } from '../lib/store';
 import ShelvedBook from '../components/book/ShelvedBook';
+import BookstrImport from '../components/auth/BookstrImport';
 import { getSelfShelfKey, decryptShelfItem } from '../lib/shelfCrypto';
 import { getFriendShelfKey } from '../lib/ShelfKeyManager';
 import eventBus from '../lib/EventBus';
@@ -43,12 +44,25 @@ export default function ProfilePage() {
     };
   }, [pubkey, currentUser]);
 
+  // Listen for shelf item deletions
+  useEffect(() => {
+    const handleItemDeleted = (bookId: string) => {
+      if (!bookId) return;
+      setEvents(prevEvents => prevEvents.filter(e => e.tagValue('d') !== bookId));
+    };
+
+    eventBus.on('shelf-item-deleted', handleItemDeleted);
+    return () => {
+      eventBus.off('shelf-item-deleted', handleItemDeleted);
+    };
+  }, []);
+
   // Fetch followers and following
   useEffect(() => {
     if (!pubkey) return;
 
     const followingSub = ndk.subscribe({ kinds: [NDKKind.Contacts], authors: [pubkey] });
-    followingSub.on('event', (event: NDKEvent) => {
+    followingSub.on('event', (event: NKEvent) => {
         const followedPubkeys = event.tags.filter(t => t[0] === 'p').map(t => t[1]);
         setFollowing(new Set(followedPubkeys));
     });
@@ -253,6 +267,9 @@ export default function ProfilePage() {
               </button>
             )}
           </div>
+        )}
+        {currentUser && isOwnProfile && (
+            <BookstrImport />
         )}
       </div>
       <hr style={{ margin: '1rem 0 2rem' }}/>

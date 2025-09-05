@@ -3,6 +3,7 @@ import { NDKEvent, NDKKind } from '@nostr-dev-kit/ndk';
 import ndk from '../../lib/ndk';
 import { useUserStore } from '../../lib/store';
 import { getSelfShelfKey, encryptShelfItem } from '../../lib/shelfCrypto';
+import eventBus from '../../lib/EventBus';
 import type { Book } from '../../pages/SearchPage';
 
 interface BookReviewFormProps {
@@ -20,13 +21,14 @@ export default function BookReviewForm({ book, eventToEdit, isPublicEdit, onClos
   const [rating, setRating] = useState<number>(0);
   const [review, setReview] = useState('');
   const [isPrivate, setIsPrivate] = useState(false);
-  const [publishState, setPublishState] = useState<'idle' | 'publishing' | 'success'>('idle');
+  const [publishState, setPublishState] = useState<'idle' | 'publishing' | 'success' | 'deleting'>('idle');
 
   useEffect(() => {
     if (eventToEdit) {
       setStatus(eventToEdit.tagValue('status') as ShelfStatus || 'want-to-read');
       setRating(parseInt(eventToEdit.tagValue('rating') || '0', 10));
       setReview(eventToEdit.content);
+      setIsPrivate(eventToEdit.kind === 30454);
     }
   }, [eventToEdit]);
 
@@ -36,12 +38,8 @@ export default function BookReviewForm({ book, eventToEdit, isPublicEdit, onClos
       '#d': [bookId],
     });
 
-    if (existingMetadata) {
-      console.log(`DEBUG: Metadata for ${bookId} already exists.`);
-      return;
-    }
+    if (existingMetadata) return;
 
-    console.log(`DEBUG: No metadata for ${bookId} found. Publishing...`);
     const metadataEvent = new NDKEvent(ndk);
     metadataEvent.kind = 30452 as NDKKind;
     
@@ -58,22 +56,12 @@ export default function BookReviewForm({ book, eventToEdit, isPublicEdit, onClos
       published_year: book.first_publish_year?.toString() || '',
     };
     metadataEvent.content = JSON.stringify(content);
-
-    try {
-      console.log("DEBUG: Publishing kind:30452 event:", metadataEvent.rawEvent());
-      await metadataEvent.publish();
-      console.log("DEBUG: Successfully published metadata.");
-    } catch (e) {
-      console.error("DEBUG: Failed to publish metadata event:", e);
-    }
+    await metadataEvent.publish();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) {
-      alert('Please login to add a book.');
-      return;
-    }
+    if (!user) return;
 
     setPublishState('publishing');
     const bookId = book.key.replace('/works/', '');
@@ -90,7 +78,6 @@ export default function BookReviewForm({ book, eventToEdit, isPublicEdit, onClos
       shelfEvent.tags.push(['rating', rating.toString()]);
     }
     
-    // Add book metadata tags for context
     const addMetadataTags = (event: NDKEvent) => {
         if (eventToEdit) {
             eventToEdit.tags.forEach(tag => {
@@ -108,16 +95,10 @@ export default function BookReviewForm({ book, eventToEdit, isPublicEdit, onClos
 
     if (isPrivate) {
       shelfEvent.kind = 30454 as NDKKind;
-      
-      // Get the user's personal shelf key
       const shelfKey = await getSelfShelfKey();
-      
-      // Encrypt the review content with the shelf key
       const coverUrl = book.cover_i ? `https://covers.openlibrary.org/b/id/${book.cover_i}-L.jpg` : '';
       const contentToEncrypt = JSON.stringify({ review, rating, cover: coverUrl });
       shelfEvent.content = await encryptShelfItem(contentToEncrypt, shelfKey);
-
-      // Metadata tags are still public to identify the book
       addMetadataTags(shelfEvent);
     } else {
       shelfEvent.kind = 30451 as NDKKind;
@@ -133,14 +114,36 @@ export default function BookReviewForm({ book, eventToEdit, isPublicEdit, onClos
     }, 1500);
   };
 
+  const handleRemove = async () => {
+    if (!eventToEdit) {
+      alert("Cannot remove book: event data is missing.");
+      return;
+    }
+
+    if (window.confirm('Are you sure you want to remove this book from your shelf?')) {
+      setPublishState('deleting');
+
+      try {
+        // Use the NDK's built-in method to create and publish a deletion event
+        await eventToEdit.delete();
+
+        eventBus.emit('shelf-item-deleted', eventToEdit.tagValue('d'));
+        onClose();
+      } catch (e) {
+        console.error("Failed to publish deletion event:", e);
+        setPublishState('idle');
+        alert("Failed to remove book. See the browser console for more details.");
+      }
+    }
+  };
+
   return (
-    <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'white', padding: '2rem', border: '1px solid #ccc', zIndex: 100 }}>
-      <h2>{book.title}</h2>
+    <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'white', color: 'black', padding: '2rem', border: '1px solid #ccc', zIndex: 100, maxWidth: '500px', width: '90%' }}>
+      <h2 style={{ marginTop: 0 }}>{book.title}</h2>
       <form onSubmit={handleSubmit}>
-        {/* Form content remains the same */}
         <div>
           <label>Shelf:</label>
-          <select value={status} onChange={(e) => setStatus(e.target.value as ShelfStatus)}>
+          <select value={status} onChange={(e) => setStatus(e.target.value as ShelfStatus)} style={{ width: '100%', padding: '0.5rem', color: 'black', backgroundColor: 'white', border: '1px solid #ccc', boxSizing: 'border-box' }}>
             <option value="want-to-read">Want to Read</option>
             <option value="reading">Currently Reading</option>
             <option value="read">Read</option>
@@ -164,7 +167,7 @@ export default function BookReviewForm({ book, eventToEdit, isPublicEdit, onClos
             value={review}
             onChange={(e) => setReview(e.target.value)}
             rows={5}
-            style={{ width: '100%' }}
+            style={{ width: '100%', boxSizing: 'border-box', color: 'black', backgroundColor: 'white', border: '1px solid #ccc' }}
             placeholder="Your thoughts on the book..."
           />
         </div>
@@ -184,13 +187,22 @@ export default function BookReviewForm({ book, eventToEdit, isPublicEdit, onClos
             </p>
           )}
         </div>
-        <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-          <button type="button" onClick={onClose} disabled={publishState !== 'idle'}>Cancel</button>
-          <button type="submit" disabled={publishState !== 'idle'}>
-            {publishState === 'publishing' && 'Publishing...'}
-            {publishState === 'success' && 'Published!'}
-            {publishState === 'idle' && (eventToEdit ? 'Update Review' : 'Publish to Nostr')}
-          </button>
+        <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {eventToEdit ? (
+            <button type="button" onClick={handleRemove} disabled={publishState !== 'idle'} style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', padding: '0.5rem 1rem', cursor: 'pointer', borderRadius: '4px' }}>
+              {publishState === 'deleting' ? 'Removing...' : 'Remove from Shelf'}
+            </button>
+          ) : (
+            <div /> 
+          )}
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button type="button" onClick={onClose} disabled={publishState !== 'idle'} style={{ border: '1px solid #ccc', padding: '0.5rem 1rem', cursor: 'pointer', borderRadius: '4px' }}>Cancel</button>
+            <button type="submit" disabled={publishState !== 'idle'} style={{ backgroundColor: '#007bff', color: 'white', border: 'none', padding: '0.5rem 1rem', cursor: 'pointer', borderRadius: '4px' }}>
+              {publishState === 'publishing' && 'Publishing...'}
+              {publishState === 'success' && 'Published!'}
+              {publishState === 'idle' && (eventToEdit ? 'Update Review' : 'Publish to Nostr')}
+            </button>
+          </div>
         </div>
       </form>
     </div>
